@@ -24,6 +24,15 @@ if not exists():
 import pymupdf
 import pymupdf4llm
 
+@st.cache_resource
+def get_ocr_engine():
+    """Inicializa y almacena en caché el motor RapidOCR para evitar descargas o retardos durante las solicitudes HTTP."""
+    try:
+        from rapidocr import RapidOCR
+        return RapidOCR()
+    except Exception:
+        return None
+
 # Configuración de la página
 st.set_page_config(
     page_title="PDF to Markdown Converter",
@@ -145,12 +154,12 @@ if uploaded_file is not None:
                 # Si el PDF es un escaneo o imagen (sin texto digital seleccionable), aplicar OCR automático con RapidOCR
                 if not md_text.strip():
                     try:
-                        from rapidocr import RapidOCR
-                        engine = RapidOCR()
-                        ocr_pages = []
-                        pages_to_process = list(range(total_pages))
-                        if page_range:
-                            pages_to_process = [p for p in page_range if 0 <= p < total_pages]
+                        engine = get_ocr_engine()
+                        if engine:
+                            ocr_pages = []
+                            pages_to_process = list(range(total_pages))
+                            if page_range:
+                                pages_to_process = [p for p in page_range if 0 <= p < total_pages]
                         
                         for p_idx in pages_to_process:
                             page = doc[p_idx]
