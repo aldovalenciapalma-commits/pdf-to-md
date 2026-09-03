@@ -1,3 +1,16 @@
+# Virtual environment
+.venv/
+venv/
+
+# Project temporary & test files
+scratch/
+test_document.*
+media/
+*.pdf
+
+# Streamlit local credentials
+.streamlit/credentials.toml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
