@@ -142,6 +142,31 @@ if uploaded_file is not None:
                     **kwargs
                 )
                 
+                # Si el PDF es un escaneo o imagen (sin texto digital seleccionable), aplicar OCR automático con RapidOCR
+                if not md_text.strip():
+                    try:
+                        from rapidocr import RapidOCR
+                        engine = RapidOCR()
+                        ocr_pages = []
+                        pages_to_process = list(range(total_pages))
+                        if page_range:
+                            pages_to_process = [p for p in page_range if 0 <= p < total_pages]
+                        
+                        for p_idx in pages_to_process:
+                            page = doc[p_idx]
+                            pix = page.get_pixmap(dpi=150)
+                            res = engine(pix.tobytes("png"))
+                            if res and hasattr(res, "txts") and res.txts:
+                                if hasattr(res, "to_markdown") and callable(res.to_markdown):
+                                    p_text = res.to_markdown()
+                                else:
+                                    p_text = "\n\n".join(res.txts)
+                                ocr_pages.append(f"## Página {p_idx + 1}\n\n" + p_text)
+                        if ocr_pages:
+                            md_text = "\n\n---\n\n".join(ocr_pages)
+                    except Exception:
+                        pass
+
                 elapsed = time.time() - start_time
                 num_words = len(md_text.split())
                 num_chars = len(md_text)
